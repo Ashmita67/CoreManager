@@ -1,8 +1,3 @@
-// phase2_realcpu.c
-// Phase 2: Real CPU Monitoring + CPU Affinity (Windows, Beginner OS Project)
-// Non-CLI version: automatically creates and monitors tasks pinned to CPU cores
-// Works on MinGW (no PDH, uses NtQuerySystemInformation)
-
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <stdio.h>
@@ -15,7 +10,6 @@
 
 typedef enum { T_READY, T_RUNNING, T_FINISHED } TaskState;
 
-/* === Data Structures === */
 typedef struct {
     int id;
     HANDLE thread;
@@ -46,12 +40,9 @@ typedef struct {
     ULONG InterruptCount;
 } SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION;
 
-/* === Globals === */
 static NTQSI NtQuerySystemInformation = NULL;
 static Task tasks[MAX_TASKS];
 static int num_tasks = 0;
-
-/* === Utility: Read per-core CPU times === */
 int get_ncores(void) {
     SYSTEM_INFO si;
     GetSystemInfo(&si);
@@ -64,7 +55,6 @@ int read_cpu_times(CORE_USAGE *info, int ncores) {
     if (!NtQuerySystemInformation) return 0;
     LONG st = NtQuerySystemInformation(8, data, sizeof(data), &len);
     if (st != 0) return 0;
-
     for (int i = 0; i < ncores; ++i) {
         info[i].IdleTime   = data[i].IdleTime.QuadPart;
         info[i].KernelTime = data[i].KernelTime.QuadPart;
@@ -85,27 +75,21 @@ double calc_cpu_usage(const CORE_USAGE *prev, const CORE_USAGE *cur) {
     return usage;
 }
 
-/* === Worker thread simulating a CPU task === */
 DWORD WINAPI task_func(LPVOID param) {
     Task *t = (Task *)param;
-
-    // Pin to specific core
     if (t->pinned_core >= 0) {
         DWORD_PTR mask = ((DWORD_PTR)1) << t->pinned_core;
         SetThreadAffinityMask(GetCurrentThread(), mask);
     }
-
     t->state = T_RUNNING;
     DWORD end = GetTickCount() + t->work_ms;
     while (GetTickCount() < end) {
-        // Simulate CPU load (busy loop)
         for (volatile int i = 0; i < 1000000; ++i);
     }
     t->state = T_FINISHED;
     return 0;
 }
 
-/* === Display system load (like /proc/stat) === */
 void display_monitor(int ncores) {
     CORE_USAGE prev[MAX_CORES], cur[MAX_CORES];
     read_cpu_times(prev, ncores);
@@ -113,14 +97,11 @@ void display_monitor(int ncores) {
 
     while (1) {
         read_cpu_times(cur, ncores);
-
         system("cls");
         printf("=== Phase 2: Real CPU Monitoring ===\n");
         printf("Cores detected: %d\n", ncores);
         printf("Core   Usage%%   Active Threads\n");
         printf("---------------------------------\n");
-
-        // Count active tasks per core
         int active[MAX_CORES] = {0};
         for (int i = 0; i < num_tasks; ++i) {
             if (tasks[i].state == T_RUNNING && tasks[i].pinned_core >= 0)
@@ -132,7 +113,6 @@ void display_monitor(int ncores) {
             printf("CPU%-3d  %6.1f%%     %d\n", i, usage, active[i]);
             prev[i] = cur[i];
         }
-
         printf("\nRunning tasks:\n");
         for (int i = 0; i < num_tasks; ++i) {
             printf("Task %d: %s on core %d\n",
@@ -141,12 +121,10 @@ void display_monitor(int ncores) {
                    (tasks[i].state == T_FINISHED ? "FINISHED" : "READY")),
                    tasks[i].pinned_core);
         }
-
         Sleep(MONITOR_INTERVAL_MS);
     }
 }
 
-/* === Setup demo tasks === */
 void setup_tasks(int ncores) {
     num_tasks = (ncores > MAX_TASKS ? MAX_TASKS : ncores);
     for (int i = 0; i < num_tasks; ++i) {
@@ -158,25 +136,20 @@ void setup_tasks(int ncores) {
     }
 }
 
-/* === Main === */
 int main(void) {
     srand((unsigned)time(NULL));
-
     NtQuerySystemInformation = (NTQSI)GetProcAddress(GetModuleHandleA("ntdll.dll"),
                                                      "NtQuerySystemInformation");
     if (!NtQuerySystemInformation) {
         printf("Error: cannot load NtQuerySystemInformation.\n");
         return 1;
     }
-
     int ncores = get_ncores();
     if (ncores > MAX_CORES) ncores = MAX_CORES;
-
     setup_tasks(ncores);
     display_monitor(ncores);
-
     for (int i = 0; i < num_tasks; ++i)
         WaitForSingleObject(tasks[i].thread, INFINITE);
-
     return 0;
+
 }
