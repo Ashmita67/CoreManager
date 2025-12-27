@@ -1,0 +1,108 @@
+{
+  "timestamp": "2025-11-08T11:43:54.578517",
+  "energy_mode": "Balanced",
+  "cores": [
+    {
+      "id": 0,
+      "utilization": 52.556321409791714,
+      "tasks": [
+        {
+          "id": 1,
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "utilization": 52.09898141772836,
+      "tasks": [
+        {
+          "id": 2,
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "utilization": 22.60341992860438,
+      "tasks": [
+        {
+          "id": 3,
+          "priority": 9
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "utilization": 60.54632875166186,
+      "tasks": [
+        {
+          "id": 4,
+          "priority": 1
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1,
+      "priority": 4,
+      "deadline": 9.212172951674518,
+      "core_assigned": 1,
+      "completed": true,
+      "cpu_time": 3.1544031158611032
+    },
+    {
+      "id": 2,
+      "priority": 1,
+      "deadline": 5.424635910942442,
+      "core_assigned": 0,
+      "completed": true,
+      "cpu_time": 2.676236305769124
+    },
+    {
+      "id": 3,
+      "priority": 2,
+      "deadline": 13.074629168043975,
+      "core_assigned": 1,
+      "completed": false,
+      "cpu_time": 1.826182874212809
+    },
+    {
+      "id": 4,
+      "priority": 2,
+      "deadline": 15.568902225586951,
+      "core_assigned": 0,
+      "completed": false,
+      "cpu_time": 0.07733234110941345
+    },
+    {
+      "id": 5,
+      "priority": 2,
+      "deadline": 16.997433537380616,
+      "core_assigned": 0,
+      "completed": false,
+      "cpu_time": 4.137795562920396
+    }
+  ],
+  "migrations": [
+    {
+      "timestamp": "2025-11-08T11:43:54.578517",
+      "task_id": 5,
+      "from_core": 1,
+      "to_core": 3
+    },
+    {
+      "timestamp": "2025-11-08T11:43:54.578517",
+      "task_id": 4,
+      "from_core": 1,
+      "to_core": 3
+    },
+    {
+      "timestamp": "2025-11-08T11:43:54.578517",
+      "task_id": 3,
+      "from_core": 0,
+      "to_core": 0
+    }
+  ]
+}
